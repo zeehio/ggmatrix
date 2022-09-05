@@ -3,7 +3,8 @@
  *
  * The contents of this file are extracted from the nara package
  * https://github.com/coolbutuseless/nara
- * It is re-distributed under the MIT license
+ *
+ * This file is distributed under the MIT license terms.
  */
 #define R_NO_REMAP
 #include <R.h>

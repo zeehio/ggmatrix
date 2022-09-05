@@ -1,3 +1,7 @@
+# Copyright 2022 Sergio Oller Moreno <sergioller@gmail.com>
+# This file is part of the ggmatrix package and it is distributed under the MIT license terms.
+# Check the ggmatrix package license information for further details.
+
 #' Raster a matrix as a rectangle, efficiently
 #'
 #' @param matrix The matrix we want to render in the plot

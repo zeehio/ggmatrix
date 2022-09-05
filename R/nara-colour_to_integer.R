@@ -1,10 +1,10 @@
 # Copyright 2022 mikefc <mikefc@coolbutuseless.com>
 #
-# Te contents of this file are extracted from the nara package
+# This function has been extracted from the nara package, available
+# under the MIT license at:
 # https://github.com/coolbutuseless/nara
-# It is re-distributed with MIT license
-
-
+#
+# It is here re-distributed with the same terms.
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Convert a colour as a character string  into an integer value representing RGBA
 #' @noRd
@@ -16,6 +16,10 @@ colour_to_integer <- function(colour) {
 }
 
 
+# Copyright 2022 Sergio Oller <sergioller@gmail.com>
+# This function is part of the ggmatrix package and it is distributed under
+# the ggmatrix license terms.
+#
 # My own implementation, in R, written to better understand the performance impact
 # of not using C for this conversion:
 # colour_to_integer <- function(x) {

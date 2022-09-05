@@ -2,9 +2,26 @@
 % Please edit documentation in R/geom_matrix_raster.R
 \name{geom_matrix_raster}
 \alias{geom_matrix_raster}
+\alias{geom_matrix_raster_slow}
 \title{Raster a matrix as a rectangle, efficiently}
 \usage{
 geom_matrix_raster(
+  matrix,
+  xmin,
+  xmax,
+  ymin,
+  ymax,
+  fill_nlevels = 4096L,
+  fill_min = NA_real_,
+  fill_max = NA_real_,
+  interpolate = FALSE,
+  flip_cols = TRUE,
+  flip_rows = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE
+)
+
+geom_matrix_raster_slow(
   matrix,
   xmin,
   xmax,
@@ -22,9 +39,16 @@ geom_matrix_raster(
 
 \item{xmin, xmax, ymin, ymax}{Coordinates where the corners of the matrix will be positioned.}
 
+\item{fill_nlevels}{Instead of passing all matrix values through the scale mapping, we take a shortcut
+and divide the matrix range into \code{fill_nlevels} equally spaced in the matrix range of values. Only those
+are converted to colours. Unused in the slow mode.}
+
+\item{fill_min, fill_max}{Typically the \code{range(matrix)}, but you can set limits here as you set them on your scale
+to get better definition in the range. Unused in the slow mode.}
+
 \item{interpolate}{If \code{TRUE}, interpolate linearly, if \code{FALSE} (the default) don't interpolate.}
 
-\item{flip_cols, flip_rows}{(Experimental) Flip the rows and columns of the matrix. By default we flip the columns.}
+\item{flip_cols, flip_rows}{Flip the rows and columns of the matrix. By default we flip the columns.}
 
 \item{show.legend}{logical. Should this layer be included in the legends?
 \code{NA}, the default, includes if any aesthetics are mapped.
@@ -38,5 +62,10 @@ that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
 }
 \description{
-Raster a matrix as a rectangle, efficiently
+The goal of this function is to be fast rather than supporting all transformations.
 }
+\section{Functions}{
+\itemize{
+\item \code{geom_matrix_raster_slow()}: A slower version, that accepts scale transformations
+
+}}

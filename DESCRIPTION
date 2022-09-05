@@ -2,10 +2,10 @@ Package: ggmatrix
 Title: ggplot2 geoms for matrices
 Version: 0.1.0
 Authors@R: c(
-    person("Sergio", "Oller Moreno", , "sergioller@gmail.com", role = c("aut", "cre", "cph"),
+    person(given = "Sergio", family = "Oller Moreno", email = "sergioller@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-8994-1549")),
-    person("Mike", "Cheng", "mikefc@coolbutuseless.com", role = c("ctb", "cph"),
-           comment = "C code converting R colours from character to the nativeRaster integer format"),
+    person(given = "Mike", family = "Cheng", email = "mikefc@coolbutuseless.com", role = c("ctb", "cph"),
+           comment = "C code converting R colours from character to the nativeRaster integer format")
  )
 Description: ggplot2 extensions that work efficiently with matrices.
 URL: https://github.com/zeehio/ggmatrix

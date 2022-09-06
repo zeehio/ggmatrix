@@ -3,16 +3,14 @@ Title: ggplot2 geoms for matrices
 Version: 0.1.0
 Authors@R: c(
     person(given = "Sergio", family = "Oller Moreno", email = "sergioller@gmail.com", role = c("aut", "cre", "cph"),
-           comment = c(ORCID = "0000-0002-8994-1549")),
-    person(given = "Mike", family = "Cheng", email = "mikefc@coolbutuseless.com", role = c("ctb", "cph"),
-           comment = "C code converting R colours from character to the nativeRaster integer format")
+           comment = c(ORCID = "0000-0002-8994-1549"))
  )
 Description: ggplot2 extensions that work efficiently with matrices.
 URL: https://github.com/zeehio/ggmatrix
 BugReports: https://github.com/zeehio/ggmatrix/issues
 License: MIT + file LICENSE
 Depends: ggplot2
-Imports: rlang, grid
+Imports: rlang, grid, farver
 Encoding: UTF-8
 Language: en
 Roxygen: list(markdown = TRUE)

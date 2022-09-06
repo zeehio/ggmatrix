@@ -165,13 +165,13 @@ GeomMatrixRaster <- ggproto("GeomMatrixRaster", Geom,
                         y_rng <- range(corners$y, na.rm = TRUE)
 
                         if (fast_mode) {
-                          colormap <- colour_to_integer(data$fill)
+                          colormap <- farver::encode_native(data$fill)
                           breaks <- seq(from = fill_range[1], to = fill_range[2], length.out = length(colormap))
                           mat <- findInterval(mat, breaks, rightmost.closed = TRUE)
                           mat <- colormap[mat]
                           mat <- matrix(mat, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
                         } else {
-                          colours <- colour_to_integer(data$fill)
+                          colours <- farver::encode_native(data$fill)
                           mat <- matrix(colours, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
                         }
 

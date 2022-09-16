@@ -29,12 +29,24 @@ geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
   data <- data.frame(values = c(matrix))
   mapping <- aes(fill = .data$values)
 
+  if (nrow(matrix) > 1L) {
+    x_step <- (xmax - xmin)/(nrow(matrix) - 1L)
+  } else {
+    x_step <- 1
+  }
+  if (ncol(matrix) > 1L) {
+    y_step <- (ymax - ymin)/(ncol(matrix) - 1L)
+  } else {
+    y_step <- 1
+  }
+
+
   # we return two layers, one blank to create the axes and handle limits, another
   # rastering the matrix.
   corners <- data.frame(
-    x = c(xmin, xmax),
-    y = c(ymin, ymax)
-    )
+    x = c(xmin - x_step/2, xmax + x_step/2),
+    y = c(ymin - y_step/2, ymax + y_step/2)
+  )
   list(
     layer(
       data = corners, mapping = aes(x=.data$x, y=.data$y), stat = StatIdentity, geom = GeomBlank,
@@ -53,10 +65,7 @@ geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
         mat = matrix,
         matrix_nrows = nrow(matrix),
         matrix_ncols = ncol(matrix),
-        xmin = xmin,
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
+        corners = corners,
         flip_cols = flip_cols,
         flip_rows = flip_rows,
         interpolate = interpolate,
@@ -100,13 +109,12 @@ GeomMatrixRaster <- ggproto("GeomMatrixRaster", Geom,
                       },
 
                       draw_panel = function(self, data, panel_params, coord, mat, matrix_nrows, matrix_ncols,
-                                            xmin, xmax, ymin, ymax, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
+                                            corners, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
                         if (!inherits(coord, "CoordCartesian")) {
                           rlang::abort(c(
                             "GeomMatrixRaster only works with coord_cartesian"
                           ))
                         }
-                        corners <- data.frame(x = c(xmin, xmax), y = c(ymin, ymax))
                         corners <- coord$transform(corners, panel_params)
                         if (inherits(coord, "CoordFlip")) {
                           byrow <- TRUE

@@ -14,8 +14,8 @@ You can install the development version of ggmatrix from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("zeehio/ggmatrix")
+# install.packages("remotes")
+remotes::install_github("zeehio/ggmatrix")
 ```
 
 ## Example
@@ -33,7 +33,7 @@ mat_small <- matrix(
   nrow = length(x_small),
   ncol = length(y_small)
 )
-dimnames(mat_small) <- list(x = x_small, y = y_small)
+dimnames(mat_small) <- list("x label" = x_small, "y label" = y_small)
 
 
 ggplot() + geom_matrix_raster(matrix = mat_small)

@@ -54,9 +54,17 @@ geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ym
     x = c(xmin - x_step/2, xmax + x_step/2),
     y = c(ymin - y_step/2, ymax + y_step/2)
   )
+  x_y_names <- names(dimnames(matrix))
+  if (is.null(x_y_names)) {
+    x_y_names <- c("rows", "columns")
+  }
+  colnames(corners) <- x_y_names
+  x_name <- rlang::sym(x_y_names[1L])
+  y_name <- rlang::sym(x_y_names[2L])
+
   list(
     layer(
-      data = corners, mapping = aes(x=.data$x, y=.data$y), stat = StatIdentity, geom = GeomBlank,
+      data = corners, mapping = aes(x=!!x_name, y=!!y_name), stat = StatIdentity, geom = GeomBlank,
       position = PositionIdentity, show.legend = show.legend, inherit.aes = inherit.aes,
       params = list(), check.aes = FALSE
     ),

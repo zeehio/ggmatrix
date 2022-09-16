@@ -6,13 +6,14 @@
 #'
 #'
 #' @param matrix The matrix we want to render in the plot
-#' @param xmin,xmax,ymin,ymax Coordinates where the corners of the matrix will be positioned.
+#' @param xmin,xmax,ymin,ymax Coordinates where the corners of the matrix will
+#'  be centered By default they are taken from rownames (x) and colnames (y) respectively.
 #' @param interpolate If `TRUE`, interpolate linearly, if `FALSE` (the default) don't interpolate.
 #' @param flip_cols,flip_rows Flip the rows and columns of the matrix. By default we flip the columns.
 #' @inheritParams ggplot2::geom_raster
 #'
 #' @export
-geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
+geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL,
                                interpolate = FALSE,
                                flip_cols = TRUE,
                                flip_rows = FALSE,
@@ -21,6 +22,19 @@ geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
 {
   data <- data.frame(values = c(matrix))
   mapping <- aes(fill = .data$values)
+
+  if (is.null(xmin)) {
+    xmin <- as.numeric(rownames(matrix)[1L])
+  }
+  if (is.null(xmax)) {
+    xmax <- as.numeric(rownames(matrix)[nrow(matrix)])
+  }
+  if (is.null(ymin)) {
+    ymin <- as.numeric(colnames(matrix)[1L])
+  }
+  if (is.null(ymax)) {
+    ymax <- as.numeric(colnames(matrix)[ncol(matrix)])
+  }
 
   if (nrow(matrix) > 1L) {
     x_step <- (xmax - xmin)/(nrow(matrix) - 1L)

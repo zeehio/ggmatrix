@@ -2,7 +2,6 @@
 % Please edit documentation in R/geom_matrix_raster.R
 \name{geom_matrix_raster}
 \alias{geom_matrix_raster}
-\alias{geom_matrix_raster_slow}
 \title{Raster a matrix as a rectangle, efficiently}
 \usage{
 geom_matrix_raster(
@@ -11,22 +10,7 @@ geom_matrix_raster(
   xmax,
   ymin,
   ymax,
-  fill_nlevels = 4096L,
-  fill_min = NA_real_,
-  fill_max = NA_real_,
-  interpolate = FALSE,
-  flip_cols = TRUE,
-  flip_rows = FALSE,
-  show.legend = NA,
-  inherit.aes = TRUE
-)
-
-geom_matrix_raster_slow(
-  matrix,
-  xmin,
-  xmax,
-  ymin,
-  ymax,
+  fill_nlevels = 256L,
   interpolate = FALSE,
   flip_cols = TRUE,
   flip_rows = FALSE,
@@ -39,12 +23,8 @@ geom_matrix_raster_slow(
 
 \item{xmin, xmax, ymin, ymax}{Coordinates where the corners of the matrix will be positioned.}
 
-\item{fill_nlevels}{Instead of passing all matrix values through the scale mapping, we take a shortcut
-and divide the matrix range into \code{fill_nlevels} equally spaced in the matrix range of values. Only those
-are converted to colours. Unused in the slow mode.}
-
-\item{fill_min, fill_max}{Typically the \code{range(matrix)}, but you can set limits here as you set them on your scale
-to get better definition in the range. Unused in the slow mode.}
+\item{fill_nlevels}{To increase the speed, you can limit the number of colours to use. Set it
+to \code{Inf} to compute the colour for each matrix element.}
 
 \item{interpolate}{If \code{TRUE}, interpolate linearly, if \code{FALSE} (the default) don't interpolate.}
 
@@ -62,10 +42,5 @@ that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
 }
 \description{
-The goal of this function is to be fast rather than supporting all transformations.
+Raster a matrix as a rectangle, efficiently
 }
-\section{Functions}{
-\itemize{
-\item \code{geom_matrix_raster_slow()}: A slower version, that accepts scale transformations
-
-}}

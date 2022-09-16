@@ -2,34 +2,33 @@
 # This file is part of the ggmatrix package and it is distributed under the MIT license terms.
 # Check the ggmatrix package license information for further details.
 
-geom_matrix_raster_internal <- function(matrix, xmin, xmax, ymin, ymax,
+#' Raster a matrix as a rectangle, efficiently
+#'
+#'
+#' @param matrix The matrix we want to render in the plot
+#' @param xmin,xmax,ymin,ymax Coordinates where the corners of the matrix will be positioned.
+#' @param interpolate If `TRUE`, interpolate linearly, if `FALSE` (the default) don't interpolate.
+#' @param flip_cols,flip_rows Flip the rows and columns of the matrix. By default we flip the columns.
+#' @param fill_nlevels To increase the speed, you can limit the number of colours to use. Set it
+#'   to `Inf` to compute the colour for each matrix element.
+#' @inheritParams ggplot2::geom_raster
+#'
+#' @export
+geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
                                fill_nlevels = 256L,
-                               fill_min = NA_real_, fill_max = NA_real_,
                                interpolate = FALSE,
                                flip_cols = TRUE,
                                flip_rows = FALSE,
                                show.legend = NA,
-                               inherit.aes = TRUE,
-                               fast_mode = TRUE)
+                               inherit.aes = TRUE)
 {
-
-  if (fast_mode) {
-    if (is.na(fill_min) || is.na(fill_max)) {
-      frange <- range(matrix)
-      if (is.na(fill_min)) {
-        fill_min <- frange[1]
-      }
-      if (is.na(fill_max)) {
-        fill_max <- frange[2]
-      }
-    }
-    data <- data.frame(
-      values = seq(from = fill_min, to = fill_max, length.out = fill_nlevels)
-    )
-  } else {
-    data <- data.frame(values = c(matrix))
+  if (!(rlang::is_scalar_integerish(fill_nlevels) && !is.na(fill_nlevels) && fill_nlevels > 0)) {
+    cli::cli_abort("fill_nlevels should be either an integer of length 1 or Inf")
   }
+  matrix_dtype <- typeof(matrix)
+  data <- data.frame(values = c(matrix))
   mapping <- aes(fill = .data$values)
+
   # we return two layers, one blank to create the axes and handle limits, another
   # rastering the matrix.
   corners <- data.frame(
@@ -61,88 +60,47 @@ geom_matrix_raster_internal <- function(matrix, xmin, xmax, ymin, ymax,
         flip_cols = flip_cols,
         flip_rows = flip_rows,
         interpolate = interpolate,
-        fill_range = c(fill_min, fill_max),
-        fast_mode = fast_mode
+        fill_nlevels = fill_nlevels,
+        matrix_dtype = matrix_dtype
       )
     )
   )
 }
 
-#' Raster a matrix as a rectangle, efficiently
-#'
-#' The goal of this function is to be fast rather than supporting all transformations.
-#'
-#' @param matrix The matrix we want to render in the plot
-#' @param xmin,xmax,ymin,ymax Coordinates where the corners of the matrix will be positioned.
-#' @param interpolate If `TRUE`, interpolate linearly, if `FALSE` (the default) don't interpolate.
-#' @param flip_cols,flip_rows Flip the rows and columns of the matrix. By default we flip the columns.
-#' @param fill_nlevels Instead of passing all matrix values through the scale mapping, we take a shortcut
-#' and divide the matrix range into `fill_nlevels` equally spaced in the matrix range of values. Only those
-#' are converted to colours. Unused in the slow mode.
-#' @param fill_min,fill_max Typically the `range(matrix)`, but you can set limits here as you set them on your scale
-#' to get better definition in the range. Unused in the slow mode.
-#' @inheritParams ggplot2::geom_raster
-#'
-#' @export
-geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
-                               fill_nlevels = 4096L,
-                               fill_min = NA_real_, fill_max = NA_real_,
-                               interpolate = FALSE,
-                               flip_cols = TRUE,
-                               flip_rows = FALSE,
-                               show.legend = NA,
-                               inherit.aes = TRUE)
-{
-  geom_matrix_raster_internal(
-    matrix = matrix,
-    xmin = xmin,
-    xmax = xmax,
-    ymin = ymin,
-    ymax = ymax,
-    fill_min = fill_min,
-    fill_max = fill_max,
-    fill_nlevels = fill_nlevels,
-    interpolate = interpolate,
-    flip_cols = flip_cols,
-    flip_rows = flip_rows,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    fast_mode = TRUE
-  )
-}
-
-
-#' @describeIn geom_matrix_raster A slower version, that accepts scale transformations
-#' @export
-geom_matrix_raster_slow <- function(matrix, xmin, xmax, ymin, ymax,
-                                    interpolate = FALSE,
-                                    flip_cols = TRUE,
-                                    flip_rows = FALSE,
-                                    show.legend = NA,
-                                    inherit.aes = TRUE) {
-  geom_matrix_raster_internal(
-    matrix = matrix,
-    xmin = xmin,
-    xmax = xmax,
-    ymin = ymin,
-    ymax = ymax,
-    interpolate = interpolate,
-    flip_cols = flip_cols,
-    flip_rows = flip_rows,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    fast_mode = FALSE
-  )
-}
 
 
 GeomMatrixRaster <- ggproto("GeomMatrixRaster", Geom,
-                      non_missing_aes = c("xmin", "xmax", "ymin", "ymax", "fill"),
-                      required_aes = c("xmin", "xmax", "ymin", "ymax", "fill"),
-                      default_aes = aes(fill = "grey35", alpha = NA),
+                      non_missing_aes = c("fill"),
+                      required_aes = c("fill"),
+                      default_aes = aes(fill = "grey35"),
+                      format_aes = function(params) {
+                        nbins <- params$fill_nlevels
+                        if (nbins == Inf) {
+                          if (params$matrix_dtype == "double") {
+                            # real numbers are not so often duplicated
+                            pal_strategy <- "raw"
+                          } else {
+                            pal_strategy <- "unique"
+                          }
+                          list(
+                            "fill" = list(
+                              "color_fmt" = "native",
+                              "map_palette_strategy" = pal_strategy
+                            )
+                          )
+                          } else {
+                          list(
+                            "fill" = list(
+                              "color_fmt" = "native",
+                              "map_palette_strategy" = "binned",
+                              "number_of_bins" = as.integer(params$fill_nlevels)
+                            )
+                          )
+                        }
+                      },
 
                       draw_panel = function(self, data, panel_params, coord, mat, matrix_nrows, matrix_ncols,
-                                            xmin, xmax, ymin, ymax, flip_cols, flip_rows, interpolate, fill_range, fast_mode) {
+                                            xmin, xmax, ymin, ymax, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
                         if (!inherits(coord, "CoordCartesian")) {
                           rlang::abort(c(
                             "GeomMatrixRaster only works with coord_cartesian"
@@ -164,16 +122,7 @@ GeomMatrixRaster <- ggproto("GeomMatrixRaster", Geom,
                         x_rng <- range(corners$x, na.rm = TRUE)
                         y_rng <- range(corners$y, na.rm = TRUE)
 
-                        if (fast_mode) {
-                          colormap <- farver::encode_native(data$fill)
-                          breaks <- seq(from = fill_range[1], to = fill_range[2], length.out = length(colormap))
-                          mat <- findInterval(mat, breaks, rightmost.closed = TRUE)
-                          mat <- colormap[mat]
-                          mat <- matrix(mat, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
-                        } else {
-                          colours <- farver::encode_native(data$fill)
-                          mat <- matrix(colours, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
-                        }
+                        mat <- matrix(data$fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
 
                         if (flip_cols) {
                           rev_cols <- seq.int(mat_nc, 1L, by = -1L)

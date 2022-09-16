@@ -76,82 +76,80 @@ geom_matrix_raster <- function(matrix, xmin, xmax, ymin, ymax,
   )
 }
 
+GeomMatrixRaster <- ggproto(
+  "GeomMatrixRaster", Geom,
+  non_missing_aes = c("fill"),
+  required_aes = c("fill"),
+  default_aes = aes(fill = "grey35"),
+  format_aes = function(params) {
+    nbins <- params$fill_nlevels
+    if (nbins == Inf) {
+      if (params$matrix_dtype == "double") {
+        # real numbers are not so often duplicated
+        pal_strategy <- "raw"
+      } else {
+        pal_strategy <- "unique"
+      }
+      list(
+        "fill" = list(
+          "color_fmt" = "native",
+          "map_palette_strategy" = pal_strategy
+        )
+      )
+    } else {
+      list(
+        "fill" = list(
+          "color_fmt" = "native",
+          "map_palette_strategy" = "binned",
+          "number_of_bins" = as.integer(params$fill_nlevels)
+        )
+      )
+    }
+  },
 
+  draw_panel = function(self, data, panel_params, coord, mat, matrix_nrows, matrix_ncols,
+                        corners, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
+    if (!inherits(coord, "CoordCartesian")) {
+      rlang::abort(c(
+        "GeomMatrixRaster only works with coord_cartesian"
+      ))
+    }
+    corners <- coord$transform(corners, panel_params)
+    if (inherits(coord, "CoordFlip")) {
+      byrow <- TRUE
+      mat_nr <- matrix_ncols
+      mat_nc <- matrix_nrows
+      nr_dim <- c(matrix_nrows, matrix_ncols)
+    } else {
+      byrow <- FALSE
+      mat_nr <- matrix_nrows
+      mat_nc <- matrix_ncols
+      nr_dim <- c(matrix_ncols, matrix_nrows)
+    }
+    x_rng <- range(corners$x, na.rm = TRUE)
+    y_rng <- range(corners$y, na.rm = TRUE)
 
-GeomMatrixRaster <- ggproto("GeomMatrixRaster", Geom,
-                      non_missing_aes = c("fill"),
-                      required_aes = c("fill"),
-                      default_aes = aes(fill = "grey35"),
-                      format_aes = function(params) {
-                        nbins <- params$fill_nlevels
-                        if (nbins == Inf) {
-                          if (params$matrix_dtype == "double") {
-                            # real numbers are not so often duplicated
-                            pal_strategy <- "raw"
-                          } else {
-                            pal_strategy <- "unique"
-                          }
-                          list(
-                            "fill" = list(
-                              "color_fmt" = "native",
-                              "map_palette_strategy" = pal_strategy
-                            )
-                          )
-                          } else {
-                          list(
-                            "fill" = list(
-                              "color_fmt" = "native",
-                              "map_palette_strategy" = "binned",
-                              "number_of_bins" = as.integer(params$fill_nlevels)
-                            )
-                          )
-                        }
-                      },
+    mat <- matrix(data$fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
 
-                      draw_panel = function(self, data, panel_params, coord, mat, matrix_nrows, matrix_ncols,
-                                            corners, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
-                        if (!inherits(coord, "CoordCartesian")) {
-                          rlang::abort(c(
-                            "GeomMatrixRaster only works with coord_cartesian"
-                          ))
-                        }
-                        corners <- coord$transform(corners, panel_params)
-                        if (inherits(coord, "CoordFlip")) {
-                          byrow <- TRUE
-                          mat_nr <- matrix_ncols
-                          mat_nc <- matrix_nrows
-                          nr_dim <- c(matrix_nrows, matrix_ncols)
-                        } else {
-                          byrow <- FALSE
-                          mat_nr <- matrix_nrows
-                          mat_nc <- matrix_ncols
-                          nr_dim <- c(matrix_ncols, matrix_nrows)
-                        }
-                        x_rng <- range(corners$x, na.rm = TRUE)
-                        y_rng <- range(corners$y, na.rm = TRUE)
+    if (flip_cols) {
+      rev_cols <- seq.int(mat_nc, 1L, by = -1L)
+      mat <- mat[, rev_cols, drop = FALSE]
+    }
+    if (flip_rows) {
+      rev_rows <- seq.int(mat_nr, 1L, by = -1L)
+      mat <- mat[rev_rows, drop = FALSE]
+    }
 
-                        mat <- matrix(data$fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
+    nr <- structure(
+      mat,
+      dim = nr_dim,
+      class = "nativeRaster",
+      channels = 4L
+    )
 
-                        if (flip_cols) {
-                          rev_cols <- seq.int(mat_nc, 1L, by = -1L)
-                          mat <- mat[, rev_cols, drop = FALSE]
-                        }
-                        if (flip_rows) {
-                          rev_rows <- seq.int(mat_nr, 1L, by = -1L)
-                          mat <- mat[rev_rows, drop = FALSE]
-                        }
-
-                        nr <- structure(
-                          mat,
-                          dim = nr_dim,
-                          class = "nativeRaster",
-                          channels = 4L
-                        )
-
-                        rasterGrob(nr, x_rng[1], y_rng[1],
-                                   diff(x_rng), diff(y_rng), default.units = "native",
-                                   just = c("left","bottom"), interpolate = interpolate)
-                      },
-                      draw_key = draw_key_rect
+    rasterGrob(nr, x_rng[1], y_rng[1],
+               diff(x_rng), diff(y_rng), default.units = "native",
+               just = c("left","bottom"), interpolate = interpolate)
+  },
+  draw_key = draw_key_rect
 )
-

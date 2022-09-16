@@ -58,6 +58,8 @@ geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ym
   if (is.null(x_y_names)) {
     x_y_names <- c("rows", "columns")
   }
+
+  corners_xy <- corners
   colnames(corners) <- x_y_names
   x_name <- rlang::sym(x_y_names[1L])
   y_name <- rlang::sym(x_y_names[2L])
@@ -80,7 +82,7 @@ geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ym
         mat = matrix,
         matrix_nrows = nrow(matrix),
         matrix_ncols = ncol(matrix),
-        corners = corners,
+        corners = corners_xy,
         flip_cols = flip_cols,
         flip_rows = flip_rows,
         interpolate = interpolate

@@ -10,16 +10,23 @@
 #'  be centered By default they are taken from rownames (x) and colnames (y) respectively.
 #' @param interpolate If `TRUE`, interpolate linearly, if `FALSE` (the default) don't interpolate.
 #' @param flip_cols,flip_rows Flip the rows and columns of the matrix. By default we flip the columns.
+#' @param fill_nlevels To increase the speed, you can limit the number of colours to use. Set it
+#'   to `Inf` to compute the colour for each matrix element.
 #' @inheritParams ggplot2::geom_raster
 #'
 #' @export
 geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL,
+                               fill_nlevels = 256L,
                                interpolate = FALSE,
                                flip_cols = TRUE,
                                flip_rows = FALSE,
                                show.legend = NA,
                                inherit.aes = TRUE)
 {
+  if (!(rlang::is_scalar_integerish(fill_nlevels) && !is.na(fill_nlevels) && fill_nlevels > 0)) {
+    cli::cli_abort("fill_nlevels should be either an integer of length 1 or Inf")
+  }
+  matrix_dtype <- typeof(matrix)
   data <- data.frame(values = c(matrix))
   mapping <- aes(fill = .data$values)
 
@@ -85,7 +92,9 @@ geom_matrix_raster <- function(matrix, xmin = NULL, xmax = NULL, ymin = NULL, ym
         corners = corners_xy,
         flip_cols = flip_cols,
         flip_rows = flip_rows,
-        interpolate = interpolate
+        interpolate = interpolate,
+        fill_nlevels = fill_nlevels,
+        matrix_dtype = matrix_dtype
       )
     )
   )
@@ -96,9 +105,34 @@ GeomMatrixRaster <- ggproto(
   non_missing_aes = c("fill"),
   required_aes = c("fill"),
   default_aes = aes(fill = "grey35"),
+  format_aes = function(params) {
+    nbins <- params$fill_nlevels
+    if (nbins == Inf) {
+      if (params$matrix_dtype == "double") {
+        # real numbers are not so often duplicated
+        pal_strategy <- "raw"
+      } else {
+        pal_strategy <- "unique"
+      }
+      list(
+        "fill" = list(
+          "color_fmt" = "native",
+          "map_palette_strategy" = pal_strategy
+        )
+      )
+    } else {
+      list(
+        "fill" = list(
+          "color_fmt" = "native",
+          "map_palette_strategy" = "binned",
+          "number_of_bins" = as.integer(params$fill_nlevels)
+        )
+      )
+    }
+  },
 
   draw_panel = function(self, data, panel_params, coord, mat, matrix_nrows, matrix_ncols,
-                        corners, flip_cols, flip_rows, interpolate) {
+                        corners, flip_cols, flip_rows, interpolate, fill_nlevels, matrix_dtype) {
     if (!inherits(coord, "CoordCartesian")) {
       rlang::abort(c(
         "GeomMatrixRaster only works with coord_cartesian"
@@ -119,12 +153,7 @@ GeomMatrixRaster <- ggproto(
     x_rng <- range(corners$x, na.rm = TRUE)
     y_rng <- range(corners$y, na.rm = TRUE)
 
-    mat <- matrix(
-      farver::encode_native(data$fill),
-      nrow = mat_nr,
-      ncol = mat_nc,
-      byrow = byrow
-    )
+    mat <- matrix(data$fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
 
     if (flip_cols) {
       rev_cols <- seq.int(mat_nc, 1L, by = -1L)

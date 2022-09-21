@@ -105,26 +105,26 @@ GeomMatrixRaster <- ggproto(
   non_missing_aes = c("fill"),
   required_aes = c("fill"),
   default_aes = aes(fill = "grey35"),
-  format_aes = function(params) {
+  scale_params = function(params) {
     nbins <- params$fill_nlevels
     if (nbins == Inf) {
       if (params$matrix_dtype == "double") {
         # real numbers are not so often duplicated
-        pal_strategy <- "raw"
+        mapping_method <- "raw"
       } else {
-        pal_strategy <- "unique"
+        mapping_method <- "unique"
       }
       list(
         "fill" = list(
           "color_fmt" = "native",
-          "map_palette_strategy" = pal_strategy
+          "mapping_method" = mapping_method
         )
       )
     } else {
       list(
         "fill" = list(
           "color_fmt" = "native",
-          "map_palette_strategy" = "binned",
+          "mapping_method" = "binned",
           "number_of_bins" = as.integer(params$fill_nlevels)
         )
       )
@@ -153,7 +153,12 @@ GeomMatrixRaster <- ggproto(
     x_rng <- range(corners$x, na.rm = TRUE)
     y_rng <- range(corners$y, na.rm = TRUE)
 
-    mat <- matrix(data$fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
+    if (is.character(data$fill)) {
+      fill <- farver::encode_native(data$fill)
+    } else {
+      fill <- data$fill
+    }
+    mat <- matrix(fill, nrow = mat_nr, ncol = mat_nc, byrow = byrow)
 
     if (flip_cols) {
       rev_cols <- seq.int(mat_nc, 1L, by = -1L)

@@ -17,4 +17,4 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Remotes:
   "zeehio/ggplot2@all-perf-improvements",
-  "zeehio/farver#40"
+  "thomasp85/farver#40"

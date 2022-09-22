@@ -16,5 +16,5 @@ Language: en
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Remotes:
-  zeehio/ggplot2@all-perf-improvements,
+  zeehio/ggplot2@for-ggmatrix,
   thomasp85/farver#40

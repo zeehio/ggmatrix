@@ -9,8 +9,12 @@ Description: ggplot2 extensions that work efficiently with matrices.
 URL: https://github.com/zeehio/ggmatrix
 BugReports: https://github.com/zeehio/ggmatrix/issues
 License: MIT + file LICENSE
-Depends: ggplot2
-Imports: rlang, grid, farver
+Depends:
+  ggplot2 (>= 3.3.6.9001)
+Imports:
+  farver (>= 2.1.1.9001),
+  grid,
+  rlang
 Encoding: UTF-8
 Language: en
 Roxygen: list(markdown = TRUE)
